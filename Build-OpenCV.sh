@@ -82,13 +82,6 @@ spatialPrint "Also installing skimage, dlib and moviepy as CV libraries"
 $PIP cython msgpack moviepy scikit-image
 $PIP dlib
 
-# Don't build FFmpeg from source, instead use apt libraries
-# TODO: remove this section after testing if https://github.com/opencv/opencv/issues/15551 resolves this
-echo "# ffmpeg-build-script" >> $SHELLRC
-execute sudo apt-get install x264 libx264-dev ffmpeg -y
-execute sudo apt-get install libasound2-dev -y
-execute sudo apt-get install libswscale-dev libavformat-dev libavutil-dev libavcodec-dev libavresample-dev -y
-
 if [[ ! -n $(cat $SHELLRC | grep '# ffmpeg-build-script') ]]; then
     spatialPrint "Building FFmpeg now"
     execute sudo apt-get -qq remove x264 libx264-dev ffmpeg -y
@@ -112,7 +105,7 @@ if [[ ! -n $(cat $SHELLRC | grep '# ffmpeg-build-script') ]]; then
         sed -i 's/-DENABLE_SHARED:bool=off/-DENABLE_SHARED:bool=on/g' build-ffmpeg
         sed -i 's/-DBUILD_SHARED_LIBS=OFF/-DBUILD_SHARED_LIBS=ON/g' build-ffmpeg
         # Build libaom as a shared library
-        sed -i 's/execute cmake -DENABLE_TESTS=0 -DCMAKE_INSTALL_PREFIX:PATH=${WORKSPACE} $PACKAGES\/av1/execute cmake -DENABLE_TESTS=0 -DBUILD_SHARED_LIBS=1 -DCMAKE_INSTALL_PREFIX:PATH=${WORKSPACE} $PACKAGES\/av1/g' build-ffmpeg
+        sed -i 's/execute cmake -DENABLE_TESTS=0 -DCMAKE_INSTALL_PREFIX:PATH="${WORKSPACE}" "$PACKAGES"\/av1/execute cmake -DENABLE_TESTS=0 -DBUILD_SHARED_LIBS=1 --cc="gcc -fPIC" -DCMAKE_INSTALL_PREFIX:PATH="${WORKSPACE}" "$PACKAGES"\/av1/g' build-ffmpeg
 
         AUTOINSTALL=yes ./build-ffmpeg --build
 
